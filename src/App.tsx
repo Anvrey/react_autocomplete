@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import debounce from 'lodash.debounce';
 import './App.scss';
 import { peopleFromServer } from './data/people';
@@ -27,7 +27,7 @@ export const App: React.FC<AppProps> = ({ delay = 300, onSelected }) => {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [focusList, setFocusList] = useState(false);
 
-  const applyQuery = debounce(setAppliedQuery, delay);
+  const applyQuery = useCallback(debounce(setAppliedQuery, delay), []);
 
   const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
@@ -55,6 +55,10 @@ export const App: React.FC<AppProps> = ({ delay = 300, onSelected }) => {
   }, []);
 
   const filteredPeople = useMemo(() => {
+    if (appliedQuery.trim().length === 0) {
+      return peopleFromServer;
+    }
+
     return peopleFromServer.filter(person =>
       person.name.includes(appliedQuery),
     );
@@ -102,7 +106,7 @@ export const App: React.FC<AppProps> = ({ delay = 300, onSelected }) => {
           </div>
         </div>
 
-        {filteredPeople.length === 0 && (
+        {filteredPeople.length === 0 && appliedQuery.trim().length > 0 && (
           <div
             className="
             notification
